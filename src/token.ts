@@ -33,7 +33,7 @@ export type SigningAlgorithm = "RS256" | "HS256";
 const supportedAlgorithms = ["RS256", "HS256"];
 
 export interface AuthenticateOptions {
-  secret: string | ((args: GetSecretOptions) => (Promise<string> | string));
+  secret: string | Buffer | ((args: GetSecretOptions) => (Promise<string | Buffer> | string | Buffer));
   algorithms: SigningAlgorithm[];
   isRevoked?: (ctx: HttpContext, payload: any) => Promise<boolean> | boolean;
   /**
@@ -103,7 +103,8 @@ export const jwt = (options: AuthenticateOptions):faas.HttpMiddleware => {
         token = await getToken(ctx);
       } catch (e) {
         //TODO: Set 500 error here. something unexpected went wrong.
-        return ctx;
+        console.log(`call to custom getToken function failed with error: ${e}`);
+        return errorContext(ctx, 401);
       }
       // TODO: check what req.headers.authorization does in Express.
     } else if (ctx.req.headers && ctx.req.headers.authorization) {
@@ -144,13 +145,13 @@ export const jwt = (options: AuthenticateOptions):faas.HttpMiddleware => {
     try {
       dtoken = jsonwebtoken.decode(token, { complete: true }) || {};
     } catch (err) {
-      // TODO: set error before return
-      // return next(new UnauthorizedError('invalid_token', err));
-      return errorContext(ctx, 500);
+      // TODO: set unauthenticated error before returning.
+      // log invalid token.
+      return errorContext(ctx, 401);
     }
     
     // 1. Get the secret value
-    const secretValue: string = typeof secret === 'string' ? secret : await secret({
+    const secretValue: string | Buffer = typeof secret !== 'function' ? secret : await secret({
       ctx,
       header: dtoken.header,
       payload: dtoken.payload,
@@ -188,7 +189,7 @@ export const jwt = (options: AuthenticateOptions):faas.HttpMiddleware => {
     }
     // Store the decoded and verified token payload in the context.
     set(ctx, outputProperty, verifiedPayload);
-    await next(ctx);
+    return await next(ctx);
   };
 
   return middleware;
