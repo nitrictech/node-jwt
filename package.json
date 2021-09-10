@@ -1,5 +1,5 @@
 {
-  "name": "@nitric/node-jwt",
+  "name": "@nitric/middleware-jwt",
   "version": "0.1.0",
   "description": "Nitric Node.js SDK Middleware for JWT validation",
   "repository": "https://github.com/nitrictech/node-jwt",
