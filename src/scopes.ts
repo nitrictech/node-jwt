@@ -21,7 +21,7 @@ export interface AuthorizeOptions {
    * 
    * lodash get is used, enabling nested properties to be retrieved.
    * 
-   * @default 'user.scopes';
+   * @default 'user.scope';
    */
   scopesProperty?: string;
   /**
@@ -42,7 +42,7 @@ export interface AuthorizeOptions {
 }
 
 const defaultOptions: AuthorizeOptions = {
-  scopesProperty: 'user.scopes',
+  scopesProperty: 'user.scope',
   requireAll: true,
   scopeSeparator: " ",
 };

@@ -7,7 +7,7 @@ describe('Given a user with a scopes string with all the required scopes', () =>
     ctx = {
       res: {},
       user: {
-        scopes: "read:user write:user",
+        scope: "read:user write:user",
       },
     }
   });
@@ -66,7 +66,7 @@ describe('Given a user with a scopes string with some of the required scopes', (
     ctx = {
       res: {},
       user: {
-        scopes: "read:user",
+        scope: "read:user",
       },
     }
   });
@@ -128,7 +128,7 @@ describe('Given a user with a scopes array', () => {
   beforeEach(() => {
     ctx = {
       res: {},
-      user: { scopes: ["read:user", "write:user"]},
+      user: { scope: ["read:user", "write:user"]},
     }
   });
 
@@ -157,7 +157,7 @@ describe('Given a ctx with required scopes with a custom separator', () => {
   beforeEach(() => {
     ctx = {
       res: {},
-      user: { scopes: "read:user|write:user"},
+      user: { scope: "read:user|write:user"},
     }
   });
 
