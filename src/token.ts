@@ -109,7 +109,7 @@ export const jwt = (options: AuthenticateOptions):faas.HttpMiddleware => {
       // TODO: check what req.headers.authorization does in Express.
     } else if (ctx.req.headers && ctx.req.headers.authorization) {
       // var parts = ctx.req.headers.authorization.split(' ');
-      const parts = ctx.req.headers['authorization'][0].split(' ');
+      const parts = (ctx.req.headers['authorization'] as string).split(' ');
       if (parts.length == 2) {
         const [scheme, credentials] = parts;
 
@@ -119,6 +119,8 @@ export const jwt = (options: AuthenticateOptions):faas.HttpMiddleware => {
           if (credentialsRequired) {
             // return next(new UnauthorizedError('credentials_bad_format', { message: 'Format is Authorization: Bearer [token]' }));
             // TODO: log
+            console.error('credentials_bad_format');
+            console.error('no Bearer prefix');
             return errorContext(ctx, 401);
           } else {
             return await next(ctx);
@@ -127,6 +129,7 @@ export const jwt = (options: AuthenticateOptions):faas.HttpMiddleware => {
       } else {
         // TODO: set error before return
         // return next(new UnauthorizedError('credentials_bad_format', { message: 'Format is Authorization: Bearer [token]' }));
+        console.error('credentials_bad_format');
         return errorContext(ctx, 401);
       }
     }
@@ -135,6 +138,7 @@ export const jwt = (options: AuthenticateOptions):faas.HttpMiddleware => {
       if (credentialsRequired) {
         // TODO: set error before return
         // return next(new UnauthorizedError('credentials_required', { message: 'No authorization token was found' }));
+        console.error('credentials_required', 'no token found');
         return errorContext(ctx, 401);
       } else {
         return await next(ctx);
@@ -147,6 +151,7 @@ export const jwt = (options: AuthenticateOptions):faas.HttpMiddleware => {
     } catch (err) {
       // TODO: set unauthenticated error before returning.
       // log invalid token.
+      console.log('invalid_token', 'unable to decode token');
       return errorContext(ctx, 401);
     }
     
@@ -163,6 +168,7 @@ export const jwt = (options: AuthenticateOptions):faas.HttpMiddleware => {
       verifiedPayload = await new Promise((res, rej) => {
         jsonwebtoken.verify(token, secretValue, verifyOptions, (err, decoded) => {
           if (err) {
+            console.error('invalid_token', 'failed to verify token');
             rej('invalid_token');
           } else {
             res(decoded);
@@ -172,6 +178,7 @@ export const jwt = (options: AuthenticateOptions):faas.HttpMiddleware => {
     } catch(err) {
       // TODO: set unauthenticated error before returning.
       // log invalid token.
+      console.error('invalid_token', 'failed with error', err);
       return errorContext(ctx, 401);
     }
 
@@ -181,10 +188,12 @@ export const jwt = (options: AuthenticateOptions):faas.HttpMiddleware => {
       if (revoked) {
         // TODO: set 403 unauthorized before returning.
         //new UnauthorizedError('revoked_token', {message: 'The token has been revoked.'})
+        console.error('invalid_token', 'provided token is valid, but has been revoked');
         return errorContext(ctx, 401);
       }
     } catch (err) {
       // TODO: log before returning.
+      console.error('unknown_error', err);
       return errorContext(ctx);
     }
     // Store the decoded and verified token payload in the context.
