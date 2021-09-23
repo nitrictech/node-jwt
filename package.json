@@ -1,6 +1,6 @@
 {
   "name": "@nitric/middleware-jwt",
-  "version": "0.1.0",
+  "version": "0.1.1-rc.0",
   "description": "Nitric Node.js SDK Middleware for JWT validation",
   "repository": "https://github.com/nitrictech/node-jwt",
   "author": "Nitric <https://github.com/nitrictech>",
@@ -59,10 +59,11 @@
     "logError": true
   },
   "dependencies": {
-    "@nitric/sdk": "0.1.27-rc.5",
+    "@nitric/sdk": "0.1.27-rc.6",
     "@types/jsonwebtoken": "^8.5.5",
     "@types/lodash": "^4.14.172",
     "jsonwebtoken": "^8.5.1",
+    "jwks-rsa": "^2.0.4",
     "lodash": "^4.17.21"
   }
 }
