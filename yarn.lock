@@ -543,12 +543,22 @@
     "@types/yargs" "^15.0.0"
     chalk "^4.0.0"
 
-"@nitric/sdk@0.1.27-rc.6":
-  version "0.1.27-rc.6"
-  resolved "https://registry.yarnpkg.com/@nitric/sdk/-/sdk-0.1.27-rc.6.tgz#bd02b210c05ceb41441a4148a10c0b6c1dbdc917"
-  integrity sha512-TYsUNcZSKDsSh3g8l2vYz4jdCQpDmK6dFHlvK+9d2GWoi2DAJeBYNsEJtuhh7I4ftAe2dNq7/gIyJRgUgB395Q==
+"@nitric/api@^0.12.0-rc.15":
+  version "0.12.0-rc.15"
+  resolved "https://registry.yarnpkg.com/@nitric/api/-/api-0.12.0-rc.15.tgz#f1aac4c1059d6b7325e66b6f86b0ddc43e20b27c"
+  integrity sha512-uGyn+6/poBgF6L1nzKVyWNTmjRh9cvpdcFdmc1MyjpLJGm7N5d0/Dq2BaApBz+SfzCvWzmtUX0a6ed24+swGtA==
   dependencies:
     "@grpc/grpc-js" "^1.1.7"
+    google-protobuf "3.14.0"
+    tslib "^2.1.0"
+
+"@nitric/sdk@^0.2.0-rc.6":
+  version "0.2.0-rc.6"
+  resolved "https://registry.yarnpkg.com/@nitric/sdk/-/sdk-0.2.0-rc.6.tgz#64bbf5250ced718628d816c4e6bfbd40449ada43"
+  integrity sha512-Y2zy7OECK9exkV6ox45akx23cymgUIGYrxxNpavJQUNu0uv9Hj6c3z+1i4mXh4Rf6KrvuU+ge7JVNf6uH3+9dg==
+  dependencies:
+    "@grpc/grpc-js" "^1.1.7"
+    "@nitric/api" "^0.12.0-rc.15"
     common-tags "^1.8.0"
     google-protobuf "3.14.0"
     path-parser "^6.1.0"
