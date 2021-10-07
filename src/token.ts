@@ -135,7 +135,11 @@ export const jwt = (options: AuthenticateOptions): faas.HttpMiddleware => {
       }
       // TODO: check what req.headers.authorization does in Express.
     } else if (ctx.req.headers && ctx.req.headers.authorization) {
-      const parts = ctx.req.headers.authorization[0].split(' ');
+      const parts = (
+        typeof ctx.req.headers.authorization === 'string'
+          ? ctx.req.headers.authorization
+          : ctx.req.headers.authorization[0]
+      ).split(' ');
 
       if (parts.length == 2) {
         const [scheme, credentials] = parts;
