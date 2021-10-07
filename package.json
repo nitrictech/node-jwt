@@ -18,11 +18,21 @@
     "license:header:remove": "license-check-and-add remove -f ./licenseconfig.json",
     "license:header:add": "license-check-and-add add -f ./licenseconfig.json",
     "license:header:check": "license-check-and-add check -f ./licenseconfig.json",
-    "license:check": "licensee --production"
+    "license:check": "licensee --production --errors-only"
   },
   "license": "Apache-2.0",
   "lint-staged": {
     "src/**/*.{ts}": "yarn lint:fix"
+  },
+  "peerDependencies": {
+    "@nitric/sdk": ">= 0.2"
+  },
+  "dependencies": {
+    "@types/jsonwebtoken": "^8.5.5",
+    "@types/lodash": "^4.14.172",
+    "jsonwebtoken": "^8.5.1",
+    "jwks-rsa": "^2.0.4",
+    "lodash": "^4.17.21"
   },
   "husky": {
     "hooks": {
@@ -57,15 +67,5 @@
     "blocking": true,
     "logInfo": false,
     "logError": true
-  },
-  "peerDependencies": {
-    "@nitric/sdk": ">= 0.2"
-  },
-  "dependencies": {
-    "@types/jsonwebtoken": "^8.5.5",
-    "@types/lodash": "^4.14.172",
-    "jsonwebtoken": "^8.5.1",
-    "jwks-rsa": "^2.0.4",
-    "lodash": "^4.17.21"
   }
 }
