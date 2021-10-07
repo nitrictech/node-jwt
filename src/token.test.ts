@@ -1,37 +1,53 @@
-import { AuthenticateOptions, jwt } from ".";
+// Copyright 2021, Nitric Technologies Pty Ltd.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+import { AuthenticateOptions, jwt } from '.';
 import jsonwebtoken from 'jsonwebtoken';
+import { HttpContext } from '@nitric/sdk/lib/faas';
 
 describe('Given no options', () => {
   it('Should throw an error', () => {
-    expect(jwt).toThrow("secret must be provided");
+    expect(jwt).toThrow('secret must be provided');
   });
 });
 
 describe('Given options without algorithms set', () => {
   const optionsWithoutAlgo = {
-    secret: "testsecret",
+    secret: 'testsecret',
   } as AuthenticateOptions;
 
   it('Should throw an error', () => {
-    expect(() => jwt(optionsWithoutAlgo)).toThrow("algorithms must be set");
+    expect(() => jwt(optionsWithoutAlgo)).toThrow('algorithms must be set');
   });
 });
 
 describe('Given options with invalid algorithms', () => {
   const optionsWithInvalidAlgo: AuthenticateOptions = {
-    secret: "testsecret",
-    algorithms: ["FAKE"] as any,
+    secret: 'testsecret',
+    algorithms: ['FAKE'] as any,
   };
 
   it('Should throw an error', () => {
-    expect(() => jwt(optionsWithInvalidAlgo)).toThrow("unsupported algorithm FAKE, supported algorithms are RS256, HS256");
+    expect(() => jwt(optionsWithInvalidAlgo)).toThrow(
+      'unsupported algorithm FAKE, supported algorithms are RS256, HS256'
+    );
   });
 });
 
 describe('Given options with a secret and algorithms', () => {
   const options: AuthenticateOptions = {
-    secret: "testsecret",
-    algorithms: ["RS256"],
+    secret: 'testsecret',
+    algorithms: ['RS256'],
   };
 
   const result = jwt(options);
@@ -58,9 +74,9 @@ describe('Given a request with no authorization header', () => {
 
   describe('When credentials are required', () => {
     let result;
-    
+
     beforeEach(async () => {
-      result = await jwt({secret: 'shh', algorithms: ['RS256']})(ctx);
+      result = await jwt({ secret: 'shh', algorithms: ['RS256'] })(ctx);
     });
 
     it('Should not call next', () => {
@@ -75,11 +91,15 @@ describe('Given a request with no authorization header', () => {
   describe('When credentials are not required', () => {
     let result;
     const nextSpy = jest.fn();
-    nextSpy.mockImplementation(ctx => ctx);
-    
+    nextSpy.mockImplementation((ctx) => ctx);
+
     beforeEach(async () => {
       nextSpy.mockClear();
-      result = await jwt({secret: 'shh', algorithms: ['RS256'], credentialsRequired: false})(ctx, nextSpy);
+      result = await jwt({
+        secret: 'shh',
+        algorithms: ['RS256'],
+        credentialsRequired: false,
+      })(ctx, nextSpy);
     });
 
     it('Should call next with ctx', () => {
@@ -111,16 +131,19 @@ describe('Given CORS preflight request', () => {
 
   describe('When calling the middleware', () => {
     let result;
-    const nextResponse = "fake response";
+    const nextResponse = 'fake response';
     const nextSpy = jest.fn();
-    nextSpy.mockImplementation(_ => nextResponse);
+    nextSpy.mockImplementation((_) => nextResponse);
     let originalCtx;
 
     beforeEach(async () => {
       nextSpy.mockClear();
       // roughly clone the ctx object
       originalCtx = JSON.parse(JSON.stringify(ctx));
-      result = await jwt({secret: 'shh', algorithms: ['RS256']})(ctx, nextSpy);
+      result = await jwt({ secret: 'shh', algorithms: ['RS256'] })(
+        ctx,
+        nextSpy
+      );
     });
 
     it('Should call next', () => {
@@ -143,18 +166,21 @@ describe('Given a malformed authorization header', () => {
   beforeEach(async () => {
     // reset the context object with malformed header
     ctx = {
-      req: { headers: { 'authorization': ['wrong'] } },
+      req: { headers: { authorization: ['wrong'] } },
       res: { status: 200 },
     } as any;
   });
 
   describe('When calling the middleware', () => {
-    let result;
+    let result: HttpContext;
     const nextSpy = jest.fn();
 
     beforeEach(async () => {
       nextSpy.mockClear();
-      result = await jwt({secret: 'shh', algorithms: ['RS256']})(ctx, nextSpy);
+      result = await jwt({ secret: 'shh', algorithms: ['RS256'] })(
+        ctx,
+        nextSpy
+      );
     });
 
     it('Should not call next', () => {
@@ -173,7 +199,7 @@ describe('Given an authorization header that is not Bearer', () => {
   beforeEach(async () => {
     // reset the context object with malformed header
     ctx = {
-      req: { headers: { 'authorization': ['Basic foobar'] } },
+      req: { headers: { authorization: ['Basic foobar'] } },
       res: { status: 200 },
     } as any;
   });
@@ -181,11 +207,14 @@ describe('Given an authorization header that is not Bearer', () => {
   describe('When credentials are required', () => {
     let result;
     const nextSpy = jest.fn();
-    nextSpy.mockImplementation(ctx => ctx);
+    nextSpy.mockImplementation((ctx) => ctx);
 
     beforeEach(async () => {
       nextSpy.mockClear();
-      result = await jwt({secret: 'shh', algorithms: ['RS256']})(ctx, nextSpy);
+      result = await jwt({ secret: 'shh', algorithms: ['RS256'] })(
+        ctx,
+        nextSpy
+      );
     });
 
     it('Should not call next', () => {
@@ -198,17 +227,21 @@ describe('Given an authorization header that is not Bearer', () => {
   });
 
   describe('When credentials are not required', () => {
-    let result;
-    const nextResponse = "fake response";
+    let result: HttpContext;
+    const nextResponse = 'fake response';
     const nextSpy = jest.fn();
-    nextSpy.mockImplementation(_ => nextResponse);
+    nextSpy.mockImplementation((_) => nextResponse);
     let originalCtx;
 
     beforeEach(async () => {
       nextSpy.mockClear();
       // roughly clone the ctx object
       originalCtx = JSON.parse(JSON.stringify(ctx));
-      result = await jwt({secret: 'shh', algorithms: ['RS256'], credentialsRequired: false})(ctx, nextSpy);
+      result = await jwt({
+        secret: 'shh',
+        algorithms: ['RS256'],
+        credentialsRequired: false,
+      })(ctx, nextSpy);
     });
 
     it('Should call next', () => {
@@ -231,7 +264,7 @@ describe('Given a malformed jwt', () => {
   beforeEach(async () => {
     // reset the context object with malformed header
     ctx = {
-      req: { headers: { 'authorization': ['Bearer wrongjwt'] } },
+      req: { headers: { authorization: ['Bearer wrongjwt'] } },
       res: { status: 200 },
     } as any;
   });
@@ -242,7 +275,10 @@ describe('Given a malformed jwt', () => {
 
     beforeEach(async () => {
       nextSpy.mockClear();
-      result = await jwt({secret: 'shh', algorithms: ['RS256']})(ctx, nextSpy);
+      result = await jwt({ secret: 'shh', algorithms: ['RS256'] })(
+        ctx,
+        nextSpy
+      );
     });
 
     it('Should not call next', () => {
@@ -261,7 +297,13 @@ describe('Given a jwt with invalid JSON', () => {
   beforeEach(async () => {
     // reset the context object with jwt with invalid JSON
     ctx = {
-      req: { headers: { 'authorization': ['Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.yJ1c2VybmFtZSI6InNhZ3VpYXIiLCJpYXQiOjE0NzEwMTg2MzUsImV4cCI6MTQ3MzYxMDYzNX0.junk'] } },
+      req: {
+        headers: {
+          authorization: [
+            'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.yJ1c2VybmFtZSI6InNhZ3VpYXIiLCJpYXQiOjE0NzEwMTg2MzUsImV4cCI6MTQ3MzYxMDYzNX0.junk',
+          ],
+        },
+      },
       res: { status: 200 },
     } as any;
   });
@@ -272,7 +314,10 @@ describe('Given a jwt with invalid JSON', () => {
 
     beforeEach(async () => {
       nextSpy.mockClear();
-      result = await jwt({secret: 'shh', algorithms: ['HS256']})(ctx, nextSpy);
+      result = await jwt({ secret: 'shh', algorithms: ['HS256'] })(
+        ctx,
+        nextSpy
+      );
     });
 
     it('Should not call next', () => {
@@ -289,13 +334,16 @@ describe('Given a jwt with an unexpected audience', () => {
   let ctx;
   const secret = 'itsasecret';
   const expectedAudience = 'expected-audience';
-  
 
   beforeEach(async () => {
     // reset the context object with valid jwt, with unexpected audience
-    const token = jsonwebtoken.sign({foo: 'bar', aud: 'not-expected-audience'}, secret, { expiresIn: 500});
+    const token = jsonwebtoken.sign(
+      { foo: 'bar', aud: 'not-expected-audience' },
+      secret,
+      { expiresIn: 500 }
+    );
     ctx = {
-      req: { headers: { 'authorization': [`Bearer ${token}`] } },
+      req: { headers: { authorization: [`Bearer ${token}`] } },
       res: { status: 200 },
     } as any;
   });
@@ -306,7 +354,11 @@ describe('Given a jwt with an unexpected audience', () => {
 
     beforeEach(async () => {
       nextSpy.mockClear();
-      result = await jwt({secret, algorithms: ['HS256'], verifyOptions: {audience: expectedAudience}})(ctx, nextSpy);
+      result = await jwt({
+        secret,
+        algorithms: ['HS256'],
+        verifyOptions: { audience: expectedAudience },
+      })(ctx, nextSpy);
     });
 
     it('Should not call next', () => {
@@ -322,13 +374,12 @@ describe('Given a jwt with an unexpected audience', () => {
 describe('Given an expired jwt', () => {
   let ctx;
   const secret = 'itsasecret';
-  
 
   beforeEach(async () => {
     // reset the context object with an expired jwt
-    const token = jsonwebtoken.sign({foo: 'bar', exp: 1382412921 }, secret);
+    const token = jsonwebtoken.sign({ foo: 'bar', exp: 1382412921 }, secret);
     ctx = {
-      req: { headers: { 'authorization': [`Bearer ${token}`] } },
+      req: { headers: { authorization: [`Bearer ${token}`] } },
       res: { status: 200 },
     } as any;
   });
@@ -339,7 +390,7 @@ describe('Given an expired jwt', () => {
 
     beforeEach(async () => {
       nextSpy.mockClear();
-      result = await jwt({secret, algorithms: ['HS256']})(ctx, nextSpy);
+      result = await jwt({ secret, algorithms: ['HS256'] })(ctx, nextSpy);
     });
 
     it('Should not call next', () => {
@@ -357,7 +408,11 @@ describe('Given an expired jwt', () => {
 
     beforeEach(async () => {
       nextSpy.mockClear();
-      result = await jwt({secret, algorithms: ['HS256'], credentialsRequired: false})(ctx, nextSpy);
+      result = await jwt({
+        secret,
+        algorithms: ['HS256'],
+        credentialsRequired: false,
+      })(ctx, nextSpy);
     });
 
     it('Should still not call next', () => {
@@ -373,13 +428,12 @@ describe('Given an expired jwt', () => {
 describe('Given an invalid jwt', () => {
   let ctx;
   const secret = 'itsasecret';
-  
 
   beforeEach(async () => {
     // reset the context object with an expired jwt
-    const token = jsonwebtoken.sign({foo: 'bar', exp: 1382412921 }, secret);
+    const token = jsonwebtoken.sign({ foo: 'bar', exp: 1382412921 }, secret);
     ctx = {
-      req: { headers: { 'authorization': [`Bearer ${token}`] } },
+      req: { headers: { authorization: [`Bearer ${token}`] } },
       res: { status: 200 },
     } as any;
   });
@@ -390,7 +444,10 @@ describe('Given an invalid jwt', () => {
 
     beforeEach(async () => {
       nextSpy.mockClear();
-      result = await jwt({secret: "anothersecret", algorithms: ['HS256']})(ctx, nextSpy);
+      result = await jwt({ secret: 'anothersecret', algorithms: ['HS256'] })(
+        ctx,
+        nextSpy
+      );
     });
 
     it('Should not call next', () => {
@@ -408,7 +465,11 @@ describe('Given an invalid jwt', () => {
 
     beforeEach(async () => {
       nextSpy.mockClear();
-      result = await jwt({secret: "anothersecret", algorithms: ['HS256'], credentialsRequired: false})(ctx, nextSpy);
+      result = await jwt({
+        secret: 'anothersecret',
+        algorithms: ['HS256'],
+        credentialsRequired: false,
+      })(ctx, nextSpy);
     });
 
     it('Should still not call next', () => {
@@ -424,13 +485,12 @@ describe('Given an invalid jwt', () => {
 describe('Given a custom getToken function', () => {
   let ctx;
   const secret = 'itsasecret';
-  
 
   beforeEach(async () => {
     // provide a valid ctx
-    const token = jsonwebtoken.sign({foo: 'bar'}, secret);
+    const token = jsonwebtoken.sign({ foo: 'bar' }, secret);
     ctx = {
-      req: { headers: { 'authorization': [`Bearer ${token}`] } },
+      req: { headers: { authorization: [`Bearer ${token}`] } },
       res: { status: 200 },
     } as any;
   });
@@ -446,7 +506,7 @@ describe('Given a custom getToken function', () => {
         algorithms: ['HS256'],
         getToken: () => {
           throw new Error('failed');
-        }
+        },
       })(ctx, nextSpy);
     });
 
@@ -463,15 +523,18 @@ describe('Given a custom getToken function', () => {
 describe('Given a jwt with an invalid signature', () => {
   let ctx;
   const secret = 'itsasecret';
-  
 
   beforeEach(async () => {
-    const [header, payload, signature] = jsonwebtoken.sign({foo: 'bar'}, secret).split('.');
-    const newPayload = Buffer.from(JSON.stringify({foo: 'bar', edg: 'ar'})).toString('base64');
+    const [header, payload, signature] = jsonwebtoken
+      .sign({ foo: 'bar' }, secret)
+      .split('.');
+    const newPayload = Buffer.from(
+      JSON.stringify({ foo: 'bar', edg: 'ar' })
+    ).toString('base64');
     // token with payload modified after signing.
-    const token = [header, newPayload, signature].join(".");
+    const token = [header, newPayload, signature].join('.');
     ctx = {
-      req: { headers: { 'authorization': [`Bearer ${token}`] } },
+      req: { headers: { authorization: [`Bearer ${token}`] } },
       res: { status: 200 },
     } as any;
   });
@@ -482,7 +545,7 @@ describe('Given a jwt with an invalid signature', () => {
 
     beforeEach(async () => {
       nextSpy.mockClear();
-      result = await jwt({secret, algorithms: ['HS256']})(ctx, nextSpy);
+      result = await jwt({ secret, algorithms: ['HS256'] })(ctx, nextSpy);
     });
 
     it('Should not call next', () => {
@@ -498,11 +561,11 @@ describe('Given a jwt with an invalid signature', () => {
 describe('Given a valid jwt', () => {
   let ctx;
   const secret = 'itsasecret';
-  
+
   beforeEach(async () => {
-    const token = jsonwebtoken.sign({foo: 'bar'}, secret);
+    const token = jsonwebtoken.sign({ foo: 'bar' }, secret);
     ctx = {
-      req: { headers: { 'authorization': [`Bearer ${token}`] } },
+      req: { headers: { authorization: [`Bearer ${token}`] } },
       res: { status: 200 },
     } as any;
   });
@@ -510,14 +573,14 @@ describe('Given a valid jwt', () => {
   describe('When calling the middleware', () => {
     let result;
     const nextSpy = jest.fn();
-    nextSpy.mockImplementation(ctx => {
+    nextSpy.mockImplementation((ctx) => {
       if (!ctx) throw new Error('no ctx received by next function');
       return ctx;
     });
 
     beforeEach(async () => {
       nextSpy.mockClear();
-      result = await jwt({secret, algorithms: ['HS256']})(ctx, nextSpy);
+      result = await jwt({ secret, algorithms: ['HS256'] })(ctx, nextSpy);
     });
 
     it('Should call next', () => {
@@ -527,10 +590,10 @@ describe('Given a valid jwt', () => {
     it('Should not modify the response status', () => {
       expect(result.res.status).toBe(200);
     });
-    
+
     it('Should add the user to the ctx', () => {
       // jwt payload decoded and returned in ctx.user
-      expect(result.user).toMatchObject({foo: 'bar'});
+      expect(result.user).toMatchObject({ foo: 'bar' });
     });
   });
 });
@@ -538,11 +601,11 @@ describe('Given a valid jwt', () => {
 describe('Given a valid jwt', () => {
   let ctx;
   const secret = 'itsasecret';
-  
+
   beforeEach(async () => {
-    const token = jsonwebtoken.sign({foo: 'bar'}, secret);
+    const token = jsonwebtoken.sign({ foo: 'bar' }, secret);
     ctx = {
-      req: { headers: { 'authorization': [`Bearer ${token}`] } },
+      req: { headers: { authorization: [`Bearer ${token}`] } },
       res: { status: 200 },
     } as any;
   });
@@ -550,14 +613,18 @@ describe('Given a valid jwt', () => {
   describe('When storing output in a custom nested property', () => {
     let result;
     const nextSpy = jest.fn();
-    nextSpy.mockImplementation(ctx => {
+    nextSpy.mockImplementation((ctx) => {
       if (!ctx) throw new Error('no ctx received by next function');
       return ctx;
     });
 
     beforeEach(async () => {
       nextSpy.mockClear();
-      result = await jwt({secret, algorithms: ['HS256'], outputProperty: 'auth.custom'})(ctx, nextSpy);
+      result = await jwt({
+        secret,
+        algorithms: ['HS256'],
+        outputProperty: 'auth.custom',
+      })(ctx, nextSpy);
     });
 
     it('Should call next', () => {
@@ -567,22 +634,25 @@ describe('Given a valid jwt', () => {
     it('Should not modify the response status', () => {
       expect(result.res.status).toBe(200);
     });
-    
+
     it('Should add the token payload to the ctx under the custom property', () => {
       // jwt payload decoded and returned in ctx.user
-      expect(result.auth.custom).toMatchObject({foo: 'bar'});
+      expect(result.auth.custom).toMatchObject({ foo: 'bar' });
     });
   });
 });
 
 describe('Given a Buffer secret and valid jwt', () => {
   let ctx;
-  const secret = Buffer.from('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', 'base64');
-  
+  const secret = Buffer.from(
+    'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+    'base64'
+  );
+
   beforeEach(async () => {
-    const token = jsonwebtoken.sign({foo: 'bar'}, secret);
+    const token = jsonwebtoken.sign({ foo: 'bar' }, secret);
     ctx = {
-      req: { headers: { 'authorization': [`Bearer ${token}`] } },
+      req: { headers: { authorization: [`Bearer ${token}`] } },
       res: { status: 200 },
     } as any;
   });
@@ -590,14 +660,14 @@ describe('Given a Buffer secret and valid jwt', () => {
   describe('When calling the middleware', () => {
     let result;
     const nextSpy = jest.fn();
-    nextSpy.mockImplementation(ctx => {
+    nextSpy.mockImplementation((ctx) => {
       if (!ctx) throw new Error('no ctx received by next function');
       return ctx;
     });
 
     beforeEach(async () => {
       nextSpy.mockClear();
-      result = await jwt({secret, algorithms: ['HS256']})(ctx, nextSpy);
+      result = await jwt({ secret, algorithms: ['HS256'] })(ctx, nextSpy);
     });
 
     it('Should call next', () => {
@@ -607,10 +677,10 @@ describe('Given a Buffer secret and valid jwt', () => {
     it('Should not modify the response status', () => {
       expect(result.res.status).toBe(200);
     });
-    
+
     it('Should add the user to the ctx', () => {
       // jwt payload decoded and returned in ctx.user
-      expect(result.user).toMatchObject({foo: 'bar'});
+      expect(result.user).toMatchObject({ foo: 'bar' });
     });
   });
 });
@@ -618,28 +688,32 @@ describe('Given a Buffer secret and valid jwt', () => {
 describe('Given a custom getToken function that returns a valid token', () => {
   let ctx;
   const secret = 'itsasecret';
-  
+
   beforeEach(async () => {
-    const token = jsonwebtoken.sign({foo: 'bar'}, secret);
+    const token = jsonwebtoken.sign({ foo: 'bar' }, secret);
     ctx = {
-      req: { headers: { 'custom': [`Bearer ${token}`] } },
+      req: { headers: { custom: [`Bearer ${token}`] } },
       res: { status: 200 },
     } as any;
   });
 
-  const getTokenCustom = ctx => ctx.req.headers['custom'][0].split(" ")[1];
+  const getTokenCustom = (ctx) => ctx.req.headers['custom'][0].split(' ')[1];
 
   describe('When calling the middleware', () => {
     let result;
     const nextSpy = jest.fn();
-    nextSpy.mockImplementation(ctx => {
+    nextSpy.mockImplementation((ctx) => {
       if (!ctx) throw new Error('no ctx received by next function');
       return ctx;
     });
 
     beforeEach(async () => {
       nextSpy.mockClear();
-      result = await jwt({secret, algorithms: ['HS256'], getToken: getTokenCustom})(ctx, nextSpy);
+      result = await jwt({
+        secret,
+        algorithms: ['HS256'],
+        getToken: getTokenCustom,
+      })(ctx, nextSpy);
     });
 
     it('Should call next', () => {
@@ -649,10 +723,10 @@ describe('Given a custom getToken function that returns a valid token', () => {
     it('Should not modify the response status', () => {
       expect(result.res.status).toBe(200);
     });
-    
+
     it('Should add the token payload to ctx.user', () => {
       // jwt payload decoded and returned in ctx.user
-      expect(result.user).toMatchObject({foo: 'bar'});
+      expect(result.user).toMatchObject({ foo: 'bar' });
     });
   });
 });
@@ -661,16 +735,16 @@ describe('Given a valid jwt and a custom get secret function', () => {
   let ctx;
   const secret = 'itsasecret';
   const secretSpy = jest.fn();
-  secretSpy.mockImplementation(ctx => {
+  secretSpy.mockImplementation((ctx) => {
     if (!ctx) throw new Error('no ctx received by next function');
     return secret;
   });
-  
+
   beforeEach(async () => {
     secretSpy.mockClear();
-    const token = jsonwebtoken.sign({foo: 'bar'}, secret);
+    const token = jsonwebtoken.sign({ foo: 'bar' }, secret);
     ctx = {
-      req: { headers: { 'authorization': [`Bearer ${token}`] } },
+      req: { headers: { authorization: [`Bearer ${token}`] } },
       res: { status: 200 },
     } as any;
   });
@@ -678,14 +752,17 @@ describe('Given a valid jwt and a custom get secret function', () => {
   describe('When calling the middleware', () => {
     let result;
     const nextSpy = jest.fn();
-    nextSpy.mockImplementation(ctx => {
+    nextSpy.mockImplementation((ctx) => {
       if (!ctx) throw new Error('no ctx received by next function');
       return ctx;
     });
 
     beforeEach(async () => {
       nextSpy.mockClear();
-      result = await jwt({secret: secretSpy, algorithms: ['HS256']})(ctx, nextSpy);
+      result = await jwt({ secret: secretSpy, algorithms: ['HS256'] })(
+        ctx,
+        nextSpy
+      );
     });
 
     it('Should call next', () => {
@@ -699,10 +776,10 @@ describe('Given a valid jwt and a custom get secret function', () => {
     it('Should not modify the response status', () => {
       expect(result.res.status).toBe(200);
     });
-    
+
     it('Should add the user to the ctx', () => {
       // jwt payload decoded and returned in ctx.user
-      expect(result.user).toMatchObject({foo: 'bar'});
+      expect(result.user).toMatchObject({ foo: 'bar' });
     });
   });
 });

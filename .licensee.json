@@ -1,11 +1,8 @@
 {
   "licenses": {
-    "spdx": [
-      "MIT",
-      "BSD-3-Clause",
-      "Apache-2.0",
-      "ISC",
-      "0BSD"
-    ]
+    "spdx": ["MIT", "BSD-3-Clause", "Apache-2.0", "ISC", "0BSD"]
+  },
+  "packages": {
+    "limiter": "<=1.5.1"
   }
 }
